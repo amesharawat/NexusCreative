@@ -17,10 +17,9 @@ export async function POST(req: Request) {
 
     const result = await uploadToCloudinary(buffer, folder, resourceType);
     return NextResponse.json(result);
-  } catch (err) {
-    console.error('Upload error:', err);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('Upload route error:', err);
+    const errorMessage = err instanceof Error ? err.message : (typeof err === 'object' && err !== null && 'message' in err ? String((err as { message: unknown }).message) : 'Upload failed');
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
-
-
