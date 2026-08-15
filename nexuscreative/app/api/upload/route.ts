@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { uploadToCloudinary, UploadFolder } from '@/lib/cloudinary';
+import { uploadFile, UploadFolder } from '@/lib/storage';
 
 export async function POST(req: Request) {
   try {
@@ -15,11 +15,16 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const result = await uploadToCloudinary(buffer, folder, resourceType);
+    const result = await uploadFile(buffer, folder, file.name, file.type, resourceType);
     return NextResponse.json(result);
   } catch (err: unknown) {
     console.error('Upload route error:', err);
-    const errorMessage = err instanceof Error ? err.message : (typeof err === 'object' && err !== null && 'message' in err ? String((err as { message: unknown }).message) : 'Upload failed');
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : typeof err === 'object' && err !== null && 'message' in err
+        ? String((err as { message: unknown }).message)
+        : 'Upload failed';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
