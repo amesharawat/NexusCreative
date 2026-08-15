@@ -42,7 +42,28 @@ export default function Projects() {
                     <img src={p.thumbnail_url} alt={p.title} loading="lazy" />
                   ) : (
                     <div className={styles.thumbnailPlaceholder}>
-                      <span>💻</span>
+                      <div className={styles.placeholderGlow} />
+                      <div className={styles.terminalHeader}>
+                        <div className={styles.terminalDots}>
+                          <span className={styles.dotRed} />
+                          <span className={styles.dotYellow} />
+                          <span className={styles.dotGreen} />
+                        </div>
+                        <span className={styles.terminalTag}>PROJECT // {p.tech_stack?.[0] || 'APP'}</span>
+                      </div>
+                      <div className={styles.placeholderBody}>
+                        <div className={styles.codeIconWrap}>
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="16 18 22 12 16 6"/>
+                            <polyline points="8 6 2 12 8 18"/>
+                          </svg>
+                        </div>
+                        <h4 className={styles.placeholderTitle}>{p.title}</h4>
+                        <div className={styles.codeLines}>
+                          <span className={styles.codeLine}>&gt; system.init(v2.0)</span>
+                          <span className={styles.codeLine}>&gt; status: active [OK]</span>
+                        </div>
+                      </div>
                     </div>
                   )}
                   <div className={styles.overlay}>

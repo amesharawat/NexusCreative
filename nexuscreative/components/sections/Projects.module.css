@@ -4,7 +4,11 @@
 
 .grid { margin-top: 0; }
 
-.card { cursor: default; }
+.card { 
+  cursor: default; 
+  display: flex;
+  flex-direction: column;
+}
 
 .thumbnail {
   position: relative;
@@ -12,6 +16,7 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
 }
 
 .thumbnail img {
@@ -25,16 +30,134 @@
   transform: scale(1.05);
 }
 
+/* ── High-Tech Terminal Fallback ──────────────────────────────── */
 .thumbnailPlaceholder {
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  background: var(--bg-card);
+  flex-direction: column;
+  background: radial-gradient(circle at 80% 20%, rgba(79, 142, 247, 0.12), transparent 50%),
+              linear-gradient(145deg, #090c14 0%, #111624 100%);
+  position: relative;
+  padding: 16px;
+  overflow: hidden;
+  user-select: none;
 }
 
+.thumbnailPlaceholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.placeholderGlow {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  background: var(--accent);
+  opacity: 0.2;
+  filter: blur(35px);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.terminalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 12px;
+}
+
+.terminalDots {
+  display: flex;
+  gap: 6px;
+}
+
+.dotRed, .dotYellow, .dotGreen {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dotRed { background: #ef4444; opacity: 0.8; }
+.dotYellow { background: #eab308; opacity: 0.8; }
+.dotGreen { background: #22c55e; opacity: 0.8; }
+
+.terminalTag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent);
+  background: rgba(79, 142, 247, 0.1);
+  border: 1px solid rgba(79, 142, 247, 0.25);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.placeholderBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.codeIconWrap {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 142, 247, 0.1);
+  border: 1px solid rgba(79, 142, 247, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--accent);
+  margin-bottom: 10px;
+  transition: var(--transition);
+}
+
+.card:hover .codeIconWrap {
+  transform: translateY(-2px) scale(1.05);
+  background: rgba(79, 142, 247, 0.2);
+  border-color: var(--accent);
+}
+
+.placeholderTitle {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.codeLines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.codeLine {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ── Overlay ─────────────────────────────────────────────────── */
 .overlay {
   position: absolute;
   inset: 0;
@@ -45,6 +168,7 @@
   opacity: 0;
   transition: var(--transition);
   backdrop-filter: blur(4px);
+  z-index: 5;
 }
 
 .card:hover .overlay { opacity: 1; }
@@ -76,7 +200,10 @@
 }
 
 .body {
-  padding: 20px;
+  padding: 22px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .cardTitle {
@@ -101,6 +228,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-top: auto;
 }
 
 .skeletonCard {
