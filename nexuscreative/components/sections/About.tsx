@@ -1,6 +1,22 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import styles from './About.module.css';
 
 export default function About() {
+  const [projectCount, setProjectCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('/api/projects')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setProjectCount(data.length);
+        }
+      })
+      .catch(() => setProjectCount(null));
+  }, []);
+
   return (
     <section id="about" className={`section ${styles.about}`}>
       <div className="container">
@@ -23,7 +39,9 @@ export default function About() {
 
             <div className={styles.statsRow}>
               <div className={styles.stat}>
-                <span className={styles.statNum}>3+</span>
+                <span className={styles.statNum}>
+                  {projectCount !== null ? (projectCount > 0 ? `${projectCount}+` : '0') : '3+'}
+                </span>
                 <span className={styles.statLabel}>Full Stack Projects</span>
               </div>
               <div className={styles.stat}>
@@ -31,7 +49,7 @@ export default function About() {
                 <span className={styles.statLabel}>AI Creations</span>
               </div>
               <div className={styles.stat}>
-                <span className={styles.statNum}>5+</span>
+                <span className={styles.statNum}>8+</span>
                 <span className={styles.statLabel}>AI Tools Mastered</span>
               </div>
             </div>
