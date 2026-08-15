@@ -1,16 +1,17 @@
 .skills { background: var(--bg-primary); }
 
-.grid {
+.topGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  gap: 32px;
+  margin-bottom: 32px;
 }
 
 .column {
   background: var(--gradient-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 36px;
+  padding: 32px;
   transition: var(--transition);
 }
 
@@ -22,9 +23,9 @@
 .columnHeader {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 32px;
-  padding-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -40,7 +41,7 @@
 .skillList {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .skillItem {}
@@ -64,31 +65,86 @@
 }
 
 .barTrack {
-  height: 4px;
+  height: 6px;
   background: var(--bg-secondary);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .barFill {
   height: 100%;
   background: var(--gradient-accent);
-  border-radius: 2px;
+  border-radius: 3px;
   transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* AI Tools grid */
+/* Languages Row */
+.languagesRow {
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 28px 32px;
+  margin-bottom: 32px;
+  transition: var(--transition);
+}
+
+.languagesRow:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.langPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.langPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  transition: var(--transition);
+}
+
+.langPill:hover {
+  background: var(--accent-glow);
+  border-color: var(--border-hover);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* AI Section */
+.aiSection {
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  transition: var(--transition);
+}
+
+.aiSection:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+
 .aiGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
 .aiTool {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -98,24 +154,26 @@
 .aiTool:hover {
   border-color: var(--border-hover);
   background: var(--accent-glow);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 20px rgba(79, 142, 247, 0.15);
 }
 
-.toolIcon { font-size: 1.3rem; }
+.toolIcon { font-size: 1.4rem; }
 
 .toolName {
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--text-secondary);
 }
 
 .aiTool:hover .toolName { color: var(--text-primary); }
 
-@media (max-width: 900px) {
-  .grid { grid-template-columns: 1fr; }
+@media (max-width: 992px) {
+  .topGrid { grid-template-columns: 1fr; }
+  .aiGrid { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 480px) {
-  .column { padding: 24px; }
+@media (max-width: 540px) {
+  .column, .languagesRow, .aiSection { padding: 20px; }
   .aiGrid { grid-template-columns: 1fr; }
 }
