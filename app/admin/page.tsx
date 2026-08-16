@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
 import styles from './admin.module.css';
 
 type Tab = 'projects' | 'films' | 'ads' | 'images' | 'resumes';
@@ -60,7 +61,7 @@ export default function AdminDashboard() {
 
   const uploadFile = async (file: File, folder: string, resourceType: string): Promise<string> => {
     try {
-      // 1. Request a signed upload URL to bypass Vercel 4.5MB serverless limits
+      // 1. Request a signed upload URL to bypass Vercel serverless limits
       const urlRes = await fetch('/api/upload-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,19 +69,23 @@ export default function AdminDashboard() {
       });
 
       if (urlRes.ok) {
-        const { signedUrl, publicUrl } = await urlRes.json();
-        const uploadRes = await fetch(signedUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': file.type || 'application/octet-stream' },
-          body: file,
-        });
+        const { token, path, publicUrl } = await urlRes.json();
+        
+        // Upload directly to Supabase Storage using signed token
+        const { error: uploadError } = await supabase.storage
+          .from('portfolio')
+          .uploadToSignedUrl(path, token, file, {
+            contentType: file.type || 'application/octet-stream',
+            upsert: true,
+          });
 
-        if (uploadRes.ok) {
+        if (!uploadError) {
           return publicUrl;
         }
+        console.warn('uploadToSignedUrl error:', uploadError);
       }
     } catch (err) {
-      console.warn('Signed upload failed, attempting fallback API:', err);
+      console.warn('Direct upload failed, attempting fallback API:', err);
     }
 
     // 2. Fallback to /api/upload
@@ -95,7 +100,7 @@ export default function AdminDashboard() {
         const json = JSON.parse(text);
         throw new Error(json.error || 'Upload failed');
       } catch {
-        throw new Error('File size exceeds server limits. Please try a compressed video or shorter clip.');
+        throw new Error('Video upload failed. Please try a smaller video or check connection.');
       }
     }
     const data = await res.json();
