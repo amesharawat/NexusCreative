@@ -82,9 +82,13 @@ export default function AdminDashboard() {
       }
       if (directError) {
         console.error('Supabase direct upload error:', directError);
+        throw new Error(`Supabase Storage: ${directError.message}`);
       }
     } catch (err) {
       console.error('Direct upload exception:', err);
+      if (err instanceof Error && err.message.startsWith('Supabase Storage:')) {
+        throw err;
+      }
     }
 
     // 2. Signed URL Upload
