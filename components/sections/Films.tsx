@@ -84,13 +84,29 @@ export default function Films() {
           <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <button className={styles.closeBtn} onClick={() => setActive(null)} id="film-modal-close">✕</button>
             <div className={styles.videoWrap}>
-              <video
-                src={active.video_url}
-                controls
-                autoPlay
-                className={styles.video}
-                playsInline
-              />
+              {active.video_url?.includes('drive.google.com') ? (
+                <iframe
+                  src={active.video_url.replace(/\/view.*$/, '/preview')}
+                  className={styles.video}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              ) : active.video_url?.includes('youtube.com') || active.video_url?.includes('youtu.be') ? (
+                <iframe
+                  src={active.video_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  className={styles.video}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={active.video_url}
+                  controls
+                  autoPlay
+                  className={styles.video}
+                  playsInline
+                />
+              )}
             </div>
             <div className={styles.modalInfo}>
               <h3>{active.title}</h3>

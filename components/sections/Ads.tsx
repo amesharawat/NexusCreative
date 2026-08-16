@@ -92,7 +92,23 @@ export default function Ads() {
             <button className={styles.closeBtn} onClick={() => setActive(null)} id="ad-modal-close">✕</button>
             <div className={styles.mediaWrap}>
               {active.media_type === 'video' ? (
-                <video src={active.media_url} controls autoPlay className={styles.media} playsInline />
+                active.media_url?.includes('drive.google.com') ? (
+                  <iframe
+                    src={active.media_url.replace(/\/view.*$/, '/preview')}
+                    className={styles.media}
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  />
+                ) : active.media_url?.includes('youtube.com') || active.media_url?.includes('youtu.be') ? (
+                  <iframe
+                    src={active.media_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                    className={styles.media}
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video src={active.media_url} controls autoPlay className={styles.media} playsInline />
+                )
               ) : (
                 <img src={active.media_url} alt={active.title} className={styles.mediaImg} />
               )}
