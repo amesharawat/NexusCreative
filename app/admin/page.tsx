@@ -177,9 +177,14 @@ export default function AdminDashboard() {
       }
 
       if (tab === 'ads') {
-        let mediaUrl = '', thumbUrl = '';
-        if (mediaRef.current?.files?.[0]) mediaUrl = await uploadFile(mediaRef.current.files[0], 'ads', mediaType);
-        if (thumbRef.current?.files?.[0]) thumbUrl = await uploadFile(thumbRef.current.files[0], 'ads', 'image');
+        let mediaUrl = videoLink;
+        if (filmSourceType === 'file' && mediaRef.current?.files?.[0]) {
+          mediaUrl = await uploadFile(mediaRef.current.files[0], 'ads', mediaType);
+        }
+        let thumbUrl = '';
+        if (thumbRef.current?.files?.[0]) {
+          thumbUrl = await uploadFile(thumbRef.current.files[0], 'ads', 'image');
+        }
         payload = { title, description, media_url: mediaUrl, media_type: mediaType, thumbnail_url: thumbUrl };
       }
 
@@ -401,17 +406,46 @@ export default function AdminDashboard() {
             {/* Ads-specific */}
             {tab === 'ads' && (
               <>
-                <div className={styles.field}>
-                  <label className={styles.label}>Media Type</label>
-                  <select value={mediaType} onChange={e => setMediaType(e.target.value as 'video' | 'image')} className={styles.input} id="admin-ad-type">
-                    <option value="video">Video</option>
-                    <option value="image">Image</option>
-                  </select>
+                <div className={styles.twoCol}>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Media Type</label>
+                    <select value={mediaType} onChange={e => setMediaType(e.target.value as 'video' | 'image')} className={styles.input} id="admin-ad-type">
+                      <option value="video">🎥 Video Commercial</option>
+                      <option value="image">🖼️ Image Ad</option>
+                    </select>
+                  </div>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Input Method</label>
+                    <select
+                      value={filmSourceType}
+                      onChange={e => setFilmSourceType(e.target.value as 'file' | 'url')}
+                      className={styles.input}
+                    >
+                      <option value="file">📁 Upload File</option>
+                      <option value="url">🔗 Paste URL (Drive, YouTube, Web)</option>
+                    </select>
+                  </div>
                 </div>
-                <div className={styles.field}>
-                  <label className={styles.label}>Upload {mediaType === 'video' ? 'Video' : 'Image'} *</label>
-                  <input id="admin-ad-media" type="file" accept={mediaType === 'video' ? 'video/*' : 'image/*'} ref={mediaRef} className={styles.fileInput} required />
-                </div>
+
+                {filmSourceType === 'file' ? (
+                  <div className={styles.field}>
+                    <label className={styles.label}>Upload {mediaType === 'video' ? 'Video File' : 'Image File'} *</label>
+                    <input id="admin-ad-media" type="file" accept={mediaType === 'video' ? 'video/*' : 'image/*'} ref={mediaRef} className={styles.fileInput} required />
+                  </div>
+                ) : (
+                  <div className={styles.field}>
+                    <label className={styles.label}>Direct {mediaType === 'video' ? 'Video' : 'Image'} URL *</label>
+                    <input
+                      type="url"
+                      value={videoLink}
+                      onChange={e => setVideoLink(e.target.value)}
+                      placeholder="https://..."
+                      className={styles.input}
+                      required
+                    />
+                  </div>
+                )}
+
                 <div className={styles.field}>
                   <label className={styles.label}>Thumbnail (optional)</label>
                   <input id="admin-ad-thumb" type="file" accept="image/*" ref={thumbRef} className={styles.fileInput} />
