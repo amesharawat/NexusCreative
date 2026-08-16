@@ -4,6 +4,25 @@ import { useEffect, useState } from 'react';
 import { Film } from '@/types';
 import styles from './Films.module.css';
 
+function getMediaPoster(url?: string, thumb?: string): string {
+  if (thumb) return thumb;
+  if (!url) return '';
+  
+  // Google Drive auto-thumbnail
+  const driveId = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)?.[1] || url.match(/id=([a-zA-Z0-9_-]+)/)?.[1];
+  if (driveId) {
+    return `https://drive.google.com/thumbnail?id=${driveId}&sz=w1280`;
+  }
+
+  // YouTube auto-thumbnail
+  const ytId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/)?.[1];
+  if (ytId) {
+    return `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+  }
+
+  return '';
+}
+
 export default function Films() {
   const [films, setFilms] = useState<Film[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,44 +55,49 @@ export default function Films() {
           </div>
         ) : (
           <div className={`grid-2 ${styles.grid}`}>
-            {films.map((f) => (
-              <article key={f.id} className={`card ${styles.card}`} id={`film-${f.id}`}>
-                <div className={styles.thumbnail} onClick={() => setActive(f)}>
-                  {f.thumbnail_url ? (
-                    <img src={f.thumbnail_url} alt={f.title} loading="lazy" />
-                  ) : f.video_url ? (
-                    <video
-                      src={`${f.video_url}#t=0.1`}
-                      preload="metadata"
-                      muted
-                      playsInline
-                      className={styles.videoPoster}
-                    />
-                  ) : (
-                    <div className={styles.cinemaPlaceholder}>
-                      <div className={styles.filmGlow} />
-                      <div className={styles.filmSlate}>
-                        <span className={styles.slateClap}>CINEMA // AI 4K</span>
-                        <div className={styles.filmIcon}>🎬</div>
+            {films.map((f) => {
+              const poster = getMediaPoster(f.video_url, f.thumbnail_url);
+              const isDirectVideo = f.video_url && !poster && !f.video_url.includes('drive.google.com') && !f.video_url.includes('youtube.com');
+
+              return (
+                <article key={f.id} className={`card ${styles.card}`} id={`film-${f.id}`}>
+                  <div className={styles.thumbnail} onClick={() => setActive(f)}>
+                    {poster ? (
+                      <img src={poster} alt={f.title} loading="lazy" />
+                    ) : isDirectVideo ? (
+                      <video
+                        src={`${f.video_url}#t=0.1`}
+                        preload="metadata"
+                        muted
+                        playsInline
+                        className={styles.videoPoster}
+                      />
+                    ) : (
+                      <div className={styles.cinemaPlaceholder}>
+                        <div className={styles.filmGlow} />
+                        <div className={styles.filmSlate}>
+                          <span className={styles.slateClap}>CINEMA // AI 4K</span>
+                          <div className={styles.filmIcon}>🎬</div>
+                        </div>
                       </div>
+                    )}
+                    <div className={styles.playBtn}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                      </svg>
                     </div>
-                  )}
-                  <div className={styles.playBtn}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="5 3 19 12 5 21 5 3"/>
-                    </svg>
+                    <div className={styles.filmBadge}>4K Short Film</div>
                   </div>
-                  <div className={styles.filmBadge}>4K Short Film</div>
-                </div>
-                <div className={styles.body}>
-                  <h3 className={styles.cardTitle}>{f.title}</h3>
-                  <p className={styles.cardDesc}>{f.description}</p>
-                  <button className="btn btn-ghost" onClick={() => setActive(f)} style={{ padding: '8px 0', fontSize: '0.85rem' }} id={`film-watch-${f.id}`}>
-                    Watch Film →
-                  </button>
-                </div>
-              </article>
-            ))}
+                  <div className={styles.body}>
+                    <h3 className={styles.cardTitle}>{f.title}</h3>
+                    <p className={styles.cardDesc}>{f.description}</p>
+                    <button className="btn btn-ghost" onClick={() => setActive(f)} style={{ padding: '8px 0', fontSize: '0.85rem' }} id={`film-watch-${f.id}`}>
+                      Watch Film →
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

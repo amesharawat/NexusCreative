@@ -4,6 +4,25 @@ import { useEffect, useState } from 'react';
 import { Ad } from '@/types';
 import styles from './Ads.module.css';
 
+function getMediaPoster(url?: string, thumb?: string): string {
+  if (thumb) return thumb;
+  if (!url) return '';
+  
+  // Google Drive auto-thumbnail
+  const driveId = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)?.[1] || url.match(/id=([a-zA-Z0-9_-]+)/)?.[1];
+  if (driveId) {
+    return `https://drive.google.com/thumbnail?id=${driveId}&sz=w1280`;
+  }
+
+  // YouTube auto-thumbnail
+  const ytId = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/)?.[1];
+  if (ytId) {
+    return `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+  }
+
+  return '';
+}
+
 export default function Ads() {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,51 +55,56 @@ export default function Ads() {
           </div>
         ) : (
           <div className={`grid-3 ${styles.grid}`}>
-            {ads.map((ad) => (
-              <article key={ad.id} className={`card ${styles.card}`} id={`ad-${ad.id}`} onClick={() => setActive(ad)}>
-                <div className={styles.thumbnail}>
-                  {ad.thumbnail_url ? (
-                    <img src={ad.thumbnail_url} alt={ad.title} loading="lazy" />
-                  ) : ad.media_type === 'image' && ad.media_url ? (
-                    <img src={ad.media_url} alt={ad.title} loading="lazy" />
-                  ) : ad.media_type === 'video' && ad.media_url ? (
-                    <video
-                      src={`${ad.media_url}#t=0.1`}
-                      preload="metadata"
-                      muted
-                      playsInline
-                      className={styles.videoPoster}
-                    />
-                  ) : (
-                    <div className={styles.cinemaPlaceholder}>
-                      <span className={styles.adBadgeIcon}>📢</span>
-                      <span className={styles.adBadgeText}>COMMERCIAL AD</span>
-                    </div>
-                  )}
-                  <div className={styles.hoverOverlay}>
-                    {ad.media_type === 'video' ? (
-                      <div className={styles.playIconCircle}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                          <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                      </div>
+            {ads.map((ad) => {
+              const poster = getMediaPoster(ad.media_url, ad.thumbnail_url);
+              const isDirectVideo = ad.media_type === 'video' && ad.media_url && !poster && !ad.media_url.includes('drive.google.com') && !ad.media_url.includes('youtube.com');
+
+              return (
+                <article key={ad.id} className={`card ${styles.card}`} id={`ad-${ad.id}`} onClick={() => setActive(ad)}>
+                  <div className={styles.thumbnail}>
+                    {poster ? (
+                      <img src={poster} alt={ad.title} loading="lazy" />
+                    ) : ad.media_type === 'image' && ad.media_url ? (
+                      <img src={ad.media_url} alt={ad.title} loading="lazy" />
+                    ) : isDirectVideo ? (
+                      <video
+                        src={`${ad.media_url}#t=0.1`}
+                        preload="metadata"
+                        muted
+                        playsInline
+                        className={styles.videoPoster}
+                      />
                     ) : (
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M1 6s4-6 11-6 11 6 11 6-4 6-11 6-11-6-11-6z"/>
-                        <circle cx="12" cy="6" r="2"/>
-                      </svg>
+                      <div className={styles.cinemaPlaceholder}>
+                        <span className={styles.adBadgeIcon}>📢</span>
+                        <span className={styles.adBadgeText}>COMMERCIAL AD</span>
+                      </div>
                     )}
+                    <div className={styles.hoverOverlay}>
+                      {ad.media_type === 'video' ? (
+                        <div className={styles.playIconCircle}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                          </svg>
+                        </div>
+                      ) : (
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 6s4-6 11-6 11 6 11 6-4 6-11 6-11-6-11-6z"/>
+                          <circle cx="12" cy="6" r="2"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div className={styles.typeBadge}>
+                      {ad.media_type === 'video' ? '🎥 Video Commercial' : '🖼️ Image Ad'}
+                    </div>
                   </div>
-                  <div className={styles.typeBadge}>
-                    {ad.media_type === 'video' ? '🎥 Video Commercial' : '🖼️ Image Ad'}
+                  <div className={styles.body}>
+                    <h3 className={styles.cardTitle}>{ad.title}</h3>
+                    <p className={styles.cardDesc}>{ad.description}</p>
                   </div>
-                </div>
-                <div className={styles.body}>
-                  <h3 className={styles.cardTitle}>{ad.title}</h3>
-                  <p className={styles.cardDesc}>{ad.description}</p>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
