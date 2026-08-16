@@ -59,13 +59,46 @@ export default function AdminDashboard() {
   };
 
   const uploadFile = async (file: File, folder: string, resourceType: string): Promise<string> => {
+    try {
+      // 1. Request a signed upload URL to bypass Vercel 4.5MB serverless limits
+      const urlRes = await fetch('/api/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder, fileName: file.name }),
+      });
+
+      if (urlRes.ok) {
+        const { signedUrl, publicUrl } = await urlRes.json();
+        const uploadRes = await fetch(signedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+          body: file,
+        });
+
+        if (uploadRes.ok) {
+          return publicUrl;
+        }
+      }
+    } catch (err) {
+      console.warn('Signed upload failed, attempting fallback API:', err);
+    }
+
+    // 2. Fallback to /api/upload
     const form = new FormData();
     form.append('file', file);
     form.append('folder', folder);
     form.append('resourceType', resourceType);
     const res = await fetch('/api/upload', { method: 'POST', body: form });
+    if (!res.ok) {
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        throw new Error(json.error || 'Upload failed');
+      } catch {
+        throw new Error('File size exceeds server limits. Please try a compressed video or shorter clip.');
+      }
+    }
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Upload failed');
     return data.url;
   };
 
