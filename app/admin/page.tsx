@@ -65,7 +65,7 @@ export default function AdminDashboard() {
     const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     const filePath = `${folder}/${cleanName}`;
 
-    // 1. Try direct Supabase storage upload first (bypasses all server size limits)
+    // 1. Direct Supabase Storage Upload (handles all file sizes)
     try {
       const { data: uploadData, error: directError } = await supabase.storage
         .from('portfolio')
@@ -80,12 +80,14 @@ export default function AdminDashboard() {
           .getPublicUrl(uploadData.path);
         return publicUrlData.publicUrl;
       }
-      console.warn('Direct upload error, trying signed URL:', directError);
+      if (directError) {
+        console.error('Supabase direct upload error:', directError);
+      }
     } catch (err) {
-      console.warn('Direct upload exception:', err);
+      console.error('Direct upload exception:', err);
     }
 
-    // 2. Try signed upload URL
+    // 2. Signed URL Upload
     try {
       const urlRes = await fetch('/api/upload-url', {
         method: 'POST',
@@ -105,12 +107,13 @@ export default function AdminDashboard() {
         if (!signedError) {
           return publicUrl;
         }
+        console.error('Signed URL upload error:', signedError);
       }
     } catch (err) {
-      console.warn('Signed upload failed:', err);
+      console.error('Signed upload exception:', err);
     }
 
-    // 3. Fallback to /api/upload
+    // 3. Fallback to API route
     const form = new FormData();
     form.append('file', file);
     form.append('folder', folder);
@@ -122,7 +125,7 @@ export default function AdminDashboard() {
         const json = JSON.parse(text);
         throw new Error(json.error || 'Upload failed');
       } catch {
-        throw new Error('Upload failed. Please check Supabase Storage RLS policies or use a video link.');
+        throw new Error('Upload failed. Please verify storage permissions or file size.');
       }
     }
     const data = await res.json();
@@ -131,7 +134,7 @@ export default function AdminDashboard() {
 
   const showMsg = (text: string, type: 'success' | 'error') => {
     setMsg({ text, type });
-    setTimeout(() => setMsg(null), 4000);
+    setTimeout(() => setMsg(null), 5000);
   };
 
   const resetForm = () => {
@@ -194,7 +197,11 @@ export default function AdminDashboard() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error('Save failed');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Save failed');
+      }
+
       showMsg('✅ Published successfully!', 'success');
       resetForm();
       fetchItems();
