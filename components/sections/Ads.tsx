@@ -43,14 +43,27 @@ export default function Ads() {
                     <img src={ad.thumbnail_url} alt={ad.title} loading="lazy" />
                   ) : ad.media_type === 'image' && ad.media_url ? (
                     <img src={ad.media_url} alt={ad.title} loading="lazy" />
+                  ) : ad.media_type === 'video' && ad.media_url ? (
+                    <video
+                      src={`${ad.media_url}#t=0.1`}
+                      preload="metadata"
+                      muted
+                      playsInline
+                      className={styles.videoPoster}
+                    />
                   ) : (
-                    <div className={styles.thumbnailPlaceholder}><span>📢</span></div>
+                    <div className={styles.cinemaPlaceholder}>
+                      <span className={styles.adBadgeIcon}>📢</span>
+                      <span className={styles.adBadgeText}>COMMERCIAL AD</span>
+                    </div>
                   )}
                   <div className={styles.hoverOverlay}>
                     {ad.media_type === 'video' ? (
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="5 3 19 12 5 21 5 3"/>
-                      </svg>
+                      <div className={styles.playIconCircle}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                          <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                      </div>
                     ) : (
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M1 6s4-6 11-6 11 6 11 6-4 6-11 6-11-6-11-6z"/>
@@ -59,7 +72,7 @@ export default function Ads() {
                     )}
                   </div>
                   <div className={styles.typeBadge}>
-                    {ad.media_type === 'video' ? '🎥 Video Ad' : '🖼️ Image Ad'}
+                    {ad.media_type === 'video' ? '🎥 Video Commercial' : '🖼️ Image Ad'}
                   </div>
                 </div>
                 <div className={styles.body}>

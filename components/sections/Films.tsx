@@ -41,15 +41,29 @@ export default function Films() {
                 <div className={styles.thumbnail} onClick={() => setActive(f)}>
                   {f.thumbnail_url ? (
                     <img src={f.thumbnail_url} alt={f.title} loading="lazy" />
+                  ) : f.video_url ? (
+                    <video
+                      src={`${f.video_url}#t=0.1`}
+                      preload="metadata"
+                      muted
+                      playsInline
+                      className={styles.videoPoster}
+                    />
                   ) : (
-                    <div className={styles.thumbnailPlaceholder}><span>🎬</span></div>
+                    <div className={styles.cinemaPlaceholder}>
+                      <div className={styles.filmGlow} />
+                      <div className={styles.filmSlate}>
+                        <span className={styles.slateClap}>CINEMA // AI 4K</span>
+                        <div className={styles.filmIcon}>🎬</div>
+                      </div>
+                    </div>
                   )}
                   <div className={styles.playBtn}>
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                       <polygon points="5 3 19 12 5 21 5 3"/>
                     </svg>
                   </div>
-                  <div className={styles.filmBadge}>Short Film</div>
+                  <div className={styles.filmBadge}>4K Short Film</div>
                 </div>
                 <div className={styles.body}>
                   <h3 className={styles.cardTitle}>{f.title}</h3>

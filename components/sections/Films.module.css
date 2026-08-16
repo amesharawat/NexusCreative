@@ -2,86 +2,129 @@
   background: var(--bg-secondary);
 }
 
-.grid { }
+.grid { margin-top: 0; }
 
-.card { cursor: default; }
+.card {
+  display: flex;
+  flex-direction: column;
+}
 
 .thumbnail {
   position: relative;
+  width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: #06080d;
   cursor: pointer;
 }
 
-.thumbnail img {
+.thumbnail img,
+.videoPoster {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.5s ease;
 }
 
-.card:hover .thumbnail img {
+.card:hover .thumbnail img,
+.card:hover .videoPoster {
   transform: scale(1.04);
 }
 
-.thumbnailPlaceholder {
+/* ── Cinema Fallback ─────────────────────────────────────────── */
+.cinemaPlaceholder {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 3.5rem;
-  background: linear-gradient(135deg, #0a0d15, #111620);
+  background: radial-gradient(circle at center, rgba(79, 142, 247, 0.15), #06080d 75%);
+  position: relative;
 }
 
+.filmGlow {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  background: var(--accent);
+  opacity: 0.15;
+  filter: blur(40px);
+  border-radius: 50%;
+}
+
+.filmSlate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.slateClap {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  background: rgba(79, 142, 247, 0.1);
+  border: 1px solid rgba(79, 142, 247, 0.25);
+  border-radius: 4px;
+}
+
+.filmIcon { font-size: 2rem; }
+
+/* ── Play Button ──────────────────────────────────────────────── */
 .playBtn {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  background: rgba(79, 142, 247, 0.9);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(8, 10, 15, 0.5);
   color: #fff;
+  box-shadow: 0 0 30px rgba(79, 142, 247, 0.5);
   transition: var(--transition);
+  padding-left: 4px;
+  z-index: 3;
 }
 
-.playBtn svg {
-  width: 56px;
-  height: 56px;
-  padding: 14px;
-  background: rgba(79, 142, 247, 0.9);
-  border-radius: 50%;
-  backdrop-filter: blur(8px);
-  transition: var(--transition);
-  box-shadow: 0 4px 24px rgba(79, 142, 247, 0.4);
-}
-
-.thumbnail:hover .playBtn svg {
-  transform: scale(1.1);
+.card:hover .playBtn {
+  transform: translate(-50%, -50%) scale(1.12);
   background: var(--accent);
+  box-shadow: 0 0 45px rgba(79, 142, 247, 0.8);
 }
 
 .filmBadge {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  padding: 5px 12px;
-  background: rgba(79, 142, 247, 0.85);
-  border-radius: 100px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #fff;
-  letter-spacing: 0.04em;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(8, 10, 15, 0.8);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
   backdrop-filter: blur(8px);
+  z-index: 3;
 }
 
 .body {
-  padding: 20px 22px 22px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .cardTitle {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 8px;
@@ -91,38 +134,35 @@
   font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.65;
-  margin-bottom: 14px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  margin-bottom: 18px;
+  flex: 1;
 }
 
-.skeletonCard { height: 320px; }
+.skeletonCard { height: 380px; }
 
 .empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   padding: 80px 24px;
   color: var(--text-muted);
   font-size: 1rem;
 }
 .empty span { font-size: 2.5rem; }
 
-/* Modal */
+/* ── Modal ────────────────────────────────────────────────────── */
 .modal {
   position: fixed;
   inset: 0;
-  z-index: 2000;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.25s ease;
+  backdrop-filter: blur(12px);
+  animation: fadeIn 0.2s ease;
 }
 
 .modalContent {
@@ -133,35 +173,34 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
 }
 
 .closeBtn {
   position: absolute;
   top: 16px;
   right: 16px;
-  z-index: 10;
   width: 36px;
   height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.1);
-  border: none;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 1rem;
   cursor: pointer;
+  z-index: 10;
   transition: var(--transition);
-  backdrop-filter: blur(8px);
 }
 
 .closeBtn:hover {
-  background: rgba(255,255,255,0.2);
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .videoWrap {
+  width: 100%;
   aspect-ratio: 16 / 9;
   background: #000;
 }
@@ -169,22 +208,27 @@
 .video {
   width: 100%;
   height: 100%;
-  display: block;
+  object-fit: contain;
 }
 
 .modalInfo {
-  padding: 20px 24px;
+  padding: 24px 28px;
 }
 
 .modalInfo h3 {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .modalInfo p {
   font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
