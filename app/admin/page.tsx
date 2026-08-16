@@ -27,6 +27,8 @@ export default function AdminDashboard() {
   const [techStack, setTechStack] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [liveUrl, setLiveUrl] = useState('');
+  const [videoLink, setVideoLink] = useState('');
+  const [filmSourceType, setFilmSourceType] = useState<'file' | 'url'>('file');
   const [mediaType, setMediaType] = useState<'video' | 'image'>('video');
   const [resumeType, setResumeType] = useState<'fullstack' | 'ai_creator'>('fullstack');
 
@@ -60,8 +62,31 @@ export default function AdminDashboard() {
   };
 
   const uploadFile = async (file: File, folder: string, resourceType: string): Promise<string> => {
+    const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const filePath = `${folder}/${cleanName}`;
+
+    // 1. Try direct Supabase storage upload first (bypasses all server size limits)
     try {
-      // 1. Request a signed upload URL to bypass Vercel serverless limits
+      const { data: uploadData, error: directError } = await supabase.storage
+        .from('portfolio')
+        .upload(filePath, file, {
+          contentType: file.type || 'application/octet-stream',
+          upsert: true,
+        });
+
+      if (!directError && uploadData) {
+        const { data: publicUrlData } = supabase.storage
+          .from('portfolio')
+          .getPublicUrl(uploadData.path);
+        return publicUrlData.publicUrl;
+      }
+      console.warn('Direct upload error, trying signed URL:', directError);
+    } catch (err) {
+      console.warn('Direct upload exception:', err);
+    }
+
+    // 2. Try signed upload URL
+    try {
       const urlRes = await fetch('/api/upload-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,25 +95,22 @@ export default function AdminDashboard() {
 
       if (urlRes.ok) {
         const { token, path, publicUrl } = await urlRes.json();
-        
-        // Upload directly to Supabase Storage using signed token
-        const { error: uploadError } = await supabase.storage
+        const { error: signedError } = await supabase.storage
           .from('portfolio')
           .uploadToSignedUrl(path, token, file, {
             contentType: file.type || 'application/octet-stream',
             upsert: true,
           });
 
-        if (!uploadError) {
+        if (!signedError) {
           return publicUrl;
         }
-        console.warn('uploadToSignedUrl error:', uploadError);
       }
     } catch (err) {
-      console.warn('Direct upload failed, attempting fallback API:', err);
+      console.warn('Signed upload failed:', err);
     }
 
-    // 2. Fallback to /api/upload
+    // 3. Fallback to /api/upload
     const form = new FormData();
     form.append('file', file);
     form.append('folder', folder);
@@ -100,7 +122,7 @@ export default function AdminDashboard() {
         const json = JSON.parse(text);
         throw new Error(json.error || 'Upload failed');
       } catch {
-        throw new Error('Video upload failed. Please try a smaller video or check connection.');
+        throw new Error('Upload failed. Please check Supabase Storage RLS policies or use a video link.');
       }
     }
     const data = await res.json();
@@ -114,7 +136,8 @@ export default function AdminDashboard() {
 
   const resetForm = () => {
     setTitle(''); setDescription(''); setTechStack('');
-    setGithubUrl(''); setLiveUrl(''); setMediaType('video');
+    setGithubUrl(''); setLiveUrl(''); setVideoLink('');
+    setFilmSourceType('file'); setMediaType('video');
     if (thumbRef.current) thumbRef.current.value = '';
     if (mediaRef.current) mediaRef.current.value = '';
     if (resumeRef.current) resumeRef.current.value = '';
@@ -135,10 +158,15 @@ export default function AdminDashboard() {
       }
 
       if (tab === 'films') {
-        let videoUrl = '', thumbUrl = '';
-        if (mediaRef.current?.files?.[0]) videoUrl = await uploadFile(mediaRef.current.files[0], 'films', 'video');
-        if (thumbRef.current?.files?.[0]) thumbUrl = await uploadFile(thumbRef.current.files[0], 'films', 'image');
-        payload = { title, description, video_url: videoUrl, thumbnail_url: thumbUrl };
+        let finalVideoUrl = videoLink;
+        if (filmSourceType === 'file' && mediaRef.current?.files?.[0]) {
+          finalVideoUrl = await uploadFile(mediaRef.current.files[0], 'films', 'video');
+        }
+        let thumbUrl = '';
+        if (thumbRef.current?.files?.[0]) {
+          thumbUrl = await uploadFile(thumbRef.current.files[0], 'films', 'image');
+        }
+        payload = { title, description, video_url: finalVideoUrl, thumbnail_url: thumbUrl };
       }
 
       if (tab === 'ads') {
@@ -322,9 +350,36 @@ export default function AdminDashboard() {
             {tab === 'films' && (
               <>
                 <div className={styles.field}>
-                  <label className={styles.label}>Video File *</label>
-                  <input id="admin-film-video" type="file" accept="video/*" ref={mediaRef} className={styles.fileInput} required />
+                  <label className={styles.label}>Video Input Method</label>
+                  <select
+                    value={filmSourceType}
+                    onChange={e => setFilmSourceType(e.target.value as 'file' | 'url')}
+                    className={styles.input}
+                  >
+                    <option value="file">📁 Upload Video File (MP4, WebM)</option>
+                    <option value="url">🔗 Paste Video URL (Cloudinary, Drive, Direct Link)</option>
+                  </select>
                 </div>
+
+                {filmSourceType === 'file' ? (
+                  <div className={styles.field}>
+                    <label className={styles.label}>Video File *</label>
+                    <input id="admin-film-video" type="file" accept="video/*" ref={mediaRef} className={styles.fileInput} required />
+                  </div>
+                ) : (
+                  <div className={styles.field}>
+                    <label className={styles.label}>Direct Video URL *</label>
+                    <input
+                      type="url"
+                      value={videoLink}
+                      onChange={e => setVideoLink(e.target.value)}
+                      placeholder="https://..."
+                      className={styles.input}
+                      required
+                    />
+                  </div>
+                )}
+
                 <div className={styles.field}>
                   <label className={styles.label}>Thumbnail Image (optional)</label>
                   <input id="admin-film-thumb" type="file" accept="image/*" ref={thumbRef} className={styles.fileInput} />
